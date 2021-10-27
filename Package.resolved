@@ -9,6 +9,24 @@
           "revision": "9efe5a515acff8b73f69a31a65fc2bce2a823219",
           "version": "1.1.0"
         }
+      },
+      {
+        "package": "swift-argument-parser",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser",
+        "state": {
+          "branch": null,
+          "revision": "6b2aa2748a7881eebb9f84fb10c01293e15b52ca",
+          "version": "0.5.0"
+        }
+      },
+      {
+        "package": "TrackerRadarKit",
+        "repositoryURL": "https://github.com/duckduckgo/TrackerRadarKit",
+        "state": {
+          "branch": "bartek/tracker-exceptions",
+          "revision": "2b6d2ed57b0a549de9ead29681b9197ac291d16a",
+          "version": null
+        }
       }
     ]
   },

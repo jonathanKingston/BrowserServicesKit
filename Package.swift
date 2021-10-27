@@ -14,13 +14,15 @@ let package = Package(
         .library(name: "BrowserServicesKit", targets: ["BrowserServicesKit"]),
     ],
     dependencies: [
-        .package(name: "GRDB", url: "https://github.com/duckduckgo/GRDB.swift.git", .exact("1.1.0"))
+        .package(name: "GRDB", url: "https://github.com/duckduckgo/GRDB.swift.git", .exact("1.1.0")),
+        .package(url: "https://github.com/duckduckgo/TrackerRadarKit", .branch("bartek/tracker-exceptions"))
     ],
     targets: [
         .target(
             name: "BrowserServicesKit",
             dependencies: [
-                "GRDB"
+                "GRDB",
+                "TrackerRadarKit"
             ],
             exclude: [
                 "Resources/duckduckgo-autofill/Gruntfile.js",
