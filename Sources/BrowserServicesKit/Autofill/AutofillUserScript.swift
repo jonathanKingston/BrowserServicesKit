@@ -197,6 +197,7 @@ public class AutofillUserScript: NSObject, UserScript, AutofillMessaging {
         guard let topView = topView else { return }
         topView.getContentOverlayPopover(self)?.close()
         selectedCredential = data
+        selectedConfigType = configType
     }
     
     public func close() {
@@ -206,11 +207,13 @@ public class AutofillUserScript: NSObject, UserScript, AutofillMessaging {
     }
     
     var selectedCredential: [String: String]?
+    var selectedConfigType: String?
     
     func closeAutofillParent(_ message: WKScriptMessage, _ replyHandler: MessageReplyHandler) {
         guard let topView = topView else { return }
         let popover = topView.getContentOverlayPopover(self)!;
         selectedCredential = nil
+        selectedConfigType = nil
         lastOpenHost = nil
         popover.close()
         replyHandler(nil)
@@ -233,9 +236,6 @@ public class AutofillUserScript: NSObject, UserScript, AutofillMessaging {
         lastOpenHost = hostProvider.hostForMessage(message)
         
         let popover = topView.getContentOverlayPopover(self)!;
-        // Ensure existing one is closed
-        popover.close()
-        popover.setTypes(inputType: inputType)
         let zf = popover.zoomFactor!
         // Combines native click with offset of dax click.
         let clickX = CGFloat(clickPoint.x);
@@ -247,26 +247,26 @@ public class AutofillUserScript: NSObject, UserScript, AutofillMessaging {
         let rect = NSRect(x: x, y: y, width: width * zf, height: height * zf)
         // Convert to webview coordinate system
         print("TODOJKT pos: \(rect) -- \(top) \(height) -- click: \(clickPoint)")
-        // TODO make 150 a constant
-        if (width < 150) {
-            width = 150
+        // TODO make 315 a constant
+        if (width < 315) {
+            width = 315
         }
-        popover.display(rect: rect, of: topView.view, width: width)
+        popover.display(rect: rect, of: topView.view, width: width, inputType: inputType)
         replyHandler(nil)
     }
     
     struct getSelectedCredentialsResponse: Encodable {
         var type: String
         var data: [String: String]?
+        var configType: String?
     }
     
     func getSelectedCredentials(_ message: WKScriptMessage, _ replyHandler: MessageReplyHandler) {
-        print("TODOJKT - \(message.frameInfo.securityOrigin) \(lastOpenHost)")
         var response = getSelectedCredentialsResponse(type: "none")
         if (lastOpenHost == nil || message.frameInfo.securityOrigin.host != lastOpenHost!) {
             response = getSelectedCredentialsResponse(type: "stop")
         } else if (selectedCredential != nil) {
-            response = getSelectedCredentialsResponse(type: "ok", data: selectedCredential!)
+            response = getSelectedCredentialsResponse(type: "ok", data: selectedCredential!, configType: selectedConfigType)
         }
         if let json = try? JSONEncoder().encode(response),
            let jsonString = String(data: json, encoding: .utf8) {

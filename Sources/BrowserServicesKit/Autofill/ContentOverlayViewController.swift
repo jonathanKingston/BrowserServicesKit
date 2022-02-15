@@ -32,8 +32,6 @@ public final class ContentOverlayViewController: NSViewController, EmailManagerR
     private let topAutofillUserScript = TopAutofillUserScript()
     private var cancellables = Set<AnyCancellable>()
     @Published var pendingUpdates = Set<String>()
-    public var zoomFactor: CGFloat?
-    public var inputType: String?
     
     public var messageInterfaceBack: AutofillMessaging?
     
@@ -51,18 +49,19 @@ public final class ContentOverlayViewController: NSViewController, EmailManagerR
     
     public override func viewDidLoad() {
         initWebView()
-        print("TODOJKT viewDidLoad \(inputType)")
-        webView.configuration.userContentController.addHandler(topAutofillUserScript)
-        webView.configuration.userContentController.addUserScript(topAutofillUserScript.makeWKUserScript())
+        print("TODOJKT viewDidLoad")
+    }
+
+    public func setType(inputType: String, zoomFactor: CGFloat?) {
+        topAutofillUserScript.inputType = inputType
+        if let zoomFactor = zoomFactor {
+            initWebView()
+            webView.magnification = zoomFactor
+        }
     }
 
     public override func viewWillAppear() {
-        topAutofillUserScript.contentOverlay = self
-        topAutofillUserScript.messageInterfaceBack = messageInterfaceBack
-        topAutofillUserScript.emailDelegate = emailManager
-        topAutofillUserScript.vaultDelegate = vaultManager
-        topAutofillUserScript.inputType = inputType
-        print("TODOJKT viewWillAppear \(inputType)")
+        print("TODOJKT viewWillAppear")
         let url = Bundle.module.url(forResource: "TopAutofill", withExtension: "html")!
         webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
     }
@@ -70,6 +69,8 @@ public final class ContentOverlayViewController: NSViewController, EmailManagerR
     public override func viewWillDisappear() {
         print("TODOJKT viewWillDisappear")
         cancellables.removeAll()
+        // We should never see this but it's better than a flash of old content
+        webView.load(URLRequest(url: URL(string: "about:blank")!))
     }
 
     public func isPendingUpdates() -> Bool {
@@ -77,6 +78,7 @@ public final class ContentOverlayViewController: NSViewController, EmailManagerR
     }
 
     private func initWebView() {
+        guard webView == nil else { return }
         let configuration = WKWebViewConfiguration()
         
 #if DEBUG
@@ -85,10 +87,13 @@ public final class ContentOverlayViewController: NSViewController, EmailManagerR
         
         let webView = WKWebView(frame: .zero, configuration: configuration)
         self.webView = webView
-        if let zoomFactor = zoomFactor {
-            webView.magnification = zoomFactor
-        }
         view.addAndLayout(webView)
+        webView.configuration.userContentController.addHandler(topAutofillUserScript)
+        webView.configuration.userContentController.addUserScript(topAutofillUserScript.makeWKUserScript())
+        topAutofillUserScript.contentOverlay = self
+        topAutofillUserScript.messageInterfaceBack = messageInterfaceBack
+        topAutofillUserScript.emailDelegate = emailManager
+        topAutofillUserScript.vaultDelegate = vaultManager
     }
 
     // EmailManagerRequestDelegate
@@ -129,13 +134,10 @@ public final class ContentOverlayViewController: NSViewController, EmailManagerR
 extension ContentOverlayViewController: TopAutofillUserScriptDelegate {
     public func setSize(height: CGFloat, width: CGFloat) {
         var widthOut = width
-        if (widthOut < 150) {
-            widthOut = 150
+        if (widthOut < 315) {
+            widthOut = 315
         }
         var heightOut = height
-        if (heightOut < 80) {
-            heightOut = 80
-        }
         self.preferredContentSize = CGSize(width: widthOut, height: heightOut)
     }
 }

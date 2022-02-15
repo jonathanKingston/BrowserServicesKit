@@ -55,20 +55,18 @@ public final class ContentOverlayPopover: NSPopover {
     }
     // swiftlint:enable force_cast
     
-    
-    public func setTypes(inputType: String) {
+    public func display(rect: NSRect, of: NSView, width: CGFloat, inputType: String) {
+        // Ensure existing one is closed
+        self.close()
         let c = contentViewController as! ContentOverlayViewController
-        c.zoomFactor = zoomFactor
-        c.inputType = inputType
-    }
-    
-    public func display(rect: NSRect, of: NSView, width: CGFloat) {
+        c.setType(inputType: inputType, zoomFactor: zoomFactor)
         guard let insetBy = self.value(forKeyPath: "anchorSize")! as? CGSize else {
             return
         }
         // Inset the rectangle by the anchor size as setting the anchorSize to 0 seems impossible
         // Inset removal causes positioning issues for small / iframes
         self.show(relativeTo: rect/*.insetBy(dx: insetBy.width, dy: insetBy.height)*/, of: of, preferredEdge: .minY)
-        self.contentSize = NSSize.init(width: width, height: 200)
+        // TODOJKT constant 56
+        self.contentSize = NSSize.init(width: width, height: 56)
     }
 }
